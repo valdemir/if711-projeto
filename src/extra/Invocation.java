@@ -87,4 +87,7 @@ public class Invocation implements Serializable{
 	public ClientProxy getClientProxy() {
 		return cp;
 	}
+	public void SetClientProxy(ClientProxy cp){
+		this.cp=cp;
+	}
 }

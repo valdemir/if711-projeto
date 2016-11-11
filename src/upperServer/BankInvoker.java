@@ -11,16 +11,17 @@ import extra.Termination;
 
 public class BankInvoker {
  public void invoke(BankProxy cp) throws NoMoneyException, Throwable{
-	 ServerRequestHandler srh=new ServerRequestHandler(cp.getPort());
+	 ServerRequestHandler srh=new ServerRequestHandler(1515);
 	 Message msgFinal=null;
 	 Marshaller ms= new Marshaller();
 	 Termination ter=new Termination();
 	 Message answer;
 	 BankImpl bk=new BankImpl();
-	 NamingService nm=new NamingService("192.168.56.1",5432);
+	 NamingService nm=new NamingService("192.168.0.101",1515);
+	 
 	 nm.Bind("bank", cp);
 	 while(true){
-		 byte [] msg=srh.receive();
+		 byte [] msg=srh.receiveTCP();
 		 if(msg!=null){
 			 msgFinal=(Message) ms.unmarshall(msg);
 			 Float param_p1,param_p2,param_p3;

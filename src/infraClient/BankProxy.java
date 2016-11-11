@@ -16,7 +16,7 @@ public class BankProxy extends ClientProxy implements Ibank{
 	String host;
 	int port;
 	int id;
-	
+	Requestor requestor = new Requestor();
 	public BankProxy(String host,int port, int id){
 		super(host,port,id);
 	}
@@ -26,7 +26,7 @@ public class BankProxy extends ClientProxy implements Ibank{
 		ArrayList<Object> parameters = new ArrayList<Object>();
 		class Local{};
 		String methodName=null;
-		Requestor requestor= new Requestor();
+		
 		
 		
 		methodName=Local.class.getEnclosingMethod().getName();
@@ -49,9 +49,6 @@ public class BankProxy extends ClientProxy implements Ibank{
 		ArrayList<Object> parameters = new ArrayList<Object>();
 		class Local{};
 		String methodName=null;
-		Requestor requestor= new Requestor();
-		
-		
 		methodName=Local.class.getEnclosingMethod().getName();
 		parameters.add(id);
 		parameters.add(valor);
@@ -72,9 +69,6 @@ public class BankProxy extends ClientProxy implements Ibank{
 		ArrayList<Object> parameters = new ArrayList<Object>();
 		class Local{};
 		String methodName=null;
-		Requestor requestor= new Requestor();
-		
-		
 		methodName=Local.class.getEnclosingMethod().getName();
 		parameters.add(id);
 		parameters.add(valor);
@@ -92,9 +86,6 @@ public class BankProxy extends ClientProxy implements Ibank{
 		Invocation inv=new Invocation();
 		ArrayList<Object> parameters = new ArrayList<Object>();
 		String methodName=null;
-		Requestor requestor= new Requestor();
-		
-		
 		methodName="takeMoney";
 		parameters.add(id);
 		parameters.add(valor);
@@ -113,9 +104,6 @@ public class BankProxy extends ClientProxy implements Ibank{
 		Invocation inv=new Invocation();
 		ArrayList<Object> parameters = new ArrayList<Object>();
 		String methodName=null;
-		Requestor requestor= new Requestor();
-		
-		
 		methodName="transferMoney";
 		parameters.add(id);
 		parameters.add(id2);

@@ -47,11 +47,17 @@ public class ClientRequestHandler {
 	}
 
 	public void sendTCP(byte [] msg) throws InterruptedException, IOException{
-		clientSocket= new Socket(this.host, this.port);
+		System.out.println(this.host+" "+this.port);
+		try{
+			clientSocket= new Socket(this.host, this.port);
+			outToServer = new DataOutputStream(clientSocket.getOutputStream());
+			inFromServer = new DataInputStream(clientSocket.getInputStream());
+			
+		}catch(Exception e){
+			
+		}
 		
 		//daqui pra frente, ele segue o modelo tcp
-		outToServer = new DataOutputStream(clientSocket.getOutputStream());
-		inFromServer = new DataInputStream(clientSocket.getInputStream());
 		
 		sentMessageSize = msg.length;
 		outToServer.writeInt(sentMessageSize);
@@ -61,13 +67,14 @@ public class ClientRequestHandler {
 	
 	public byte [] receiveTCP() throws IOException{
 		byte[] msg = null;
+		System.out.println("reading message...");
 		receivedMessageSize = inFromServer.readInt();
 		msg=new byte [receivedMessageSize];
 		inFromServer.read(msg,0,receivedMessageSize);
-		
-		clientSocket.close();
-		outToServer.close();
-		inFromServer.close();
+		System.out.println("message read");
+		//clientSocket.close();
+		//outToServer.close();
+		//inFromServer.close();
 		
 		return msg;
 	}

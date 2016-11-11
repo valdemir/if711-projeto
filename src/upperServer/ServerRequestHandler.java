@@ -41,15 +41,20 @@ public class ServerRequestHandler {
 		outToClient.writeInt(sentMessageSize);
 		outToClient.write(msg);
 		outToClient.flush();
+		
+		//connectionSocket.close();
+		//welcomeSocket.close();
+		//outToClient.close();
+		//inFromClient.close();
 				
 	}
 	
 	public byte[] receiveTCP() throws IOException,InterruptedException{
 		byte[] msg = null;
 		
-		if(welcomeSocket!=null){welcomeSocket= new ServerSocket(portNumber);
+		welcomeSocket= new ServerSocket(portNumber);
 		connectionSocket = welcomeSocket.accept();
-		
+				
 		//daqui pra frente, ele segue o tcp
 		outToClient= new DataOutputStream(connectionSocket.getOutputStream());
 		inFromClient = new DataInputStream(connectionSocket.getInputStream());
@@ -57,7 +62,7 @@ public class ServerRequestHandler {
 		receivedMessageSize = inFromClient.readInt();
 		msg = new byte[receivedMessageSize];
 		inFromClient.read(msg,0,receivedMessageSize);
-		}
+		
 		return msg;
 	}
 	

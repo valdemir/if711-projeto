@@ -10,9 +10,8 @@ import upperServer.MessageHeader;
 public class Requestor {
 	
 	Marshaller ms=new Marshaller();
+	ClientRequestHandler crh=new ClientRequestHandler("192.168.0.101",1515);
 	public Termination invoke(Invocation inv)throws InterruptedException, IOException, ClassNotFoundException{
-		ClientRequestHandler crh= new ClientRequestHandler(inv.getClientProxy().getHost(),
-				inv.getClientProxy().getPort());
 		Marshaller ms=new Marshaller();
 		Termination tm=new Termination();
 		byte[] msg1;
