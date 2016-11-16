@@ -31,11 +31,21 @@ public class ServerRequestHandler {
 	private InetAddress IPAddress = null;
 	
 	BufferedReader in;
-	
-	public ServerRequestHandler(int portNumber){
+
+	public ServerRequestHandler(int portNumber) throws IOException{
 		this.portNumber=portNumber;
+		establishTCP();
 	}
 	
+	private void establishTCP() throws IOException {
+		// TODO Auto-generated method stub
+		welcomeSocket= new ServerSocket(portNumber);
+		connectionSocket = welcomeSocket.accept();
+		connectionSocket.setKeepAlive(true);
+		outToClient= new DataOutputStream(connectionSocket.getOutputStream());
+		inFromClient = new DataInputStream(connectionSocket.getInputStream());
+	}
+
 	public void sendTCP(byte[] msg) throws IOException,InterruptedException{
 		sentMessageSize = msg.length;
 		outToClient.writeInt(sentMessageSize);
@@ -52,12 +62,10 @@ public class ServerRequestHandler {
 	public byte[] receiveTCP() throws IOException,InterruptedException{
 		byte[] msg = null;
 		
-		welcomeSocket= new ServerSocket(portNumber);
-		connectionSocket = welcomeSocket.accept();
-				
+		
+		
 		//daqui pra frente, ele segue o tcp
-		outToClient= new DataOutputStream(connectionSocket.getOutputStream());
-		inFromClient = new DataInputStream(connectionSocket.getInputStream());
+		
 		
 		receivedMessageSize = inFromClient.readInt();
 		msg = new byte[receivedMessageSize];

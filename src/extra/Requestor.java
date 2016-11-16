@@ -1,6 +1,7 @@
 package extra;
 
 import java.io.IOException;
+import java.net.UnknownHostException;
 
 import upperClient.ClientRequestHandler;
 import upperServer.Message;
@@ -11,6 +12,10 @@ public class Requestor {
 	
 	Marshaller ms=new Marshaller();
 	ClientRequestHandler crh=new ClientRequestHandler("192.168.0.101",1515);
+	public Requestor() throws UnknownHostException, IOException{
+		crh.establishTCP();
+		
+	}
 	public Termination invoke(Invocation inv)throws InterruptedException, IOException, ClassNotFoundException{
 		Marshaller ms=new Marshaller();
 		Termination tm=new Termination();

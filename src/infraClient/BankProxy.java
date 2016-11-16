@@ -16,11 +16,10 @@ public class BankProxy extends ClientProxy implements Ibank{
 	String host;
 	int port;
 	int id;
-	Requestor requestor = new Requestor();
 	public BankProxy(String host,int port, int id){
 		super(host,port,id);
 	}
-	public Float getSaldo(int id) throws Throwable {
+	public Float getSaldo(int id,Requestor req) throws Throwable {
 		Invocation inv=new Invocation();
 		Termination ter= new Termination();
 		ArrayList<Object> parameters = new ArrayList<Object>();
@@ -37,14 +36,14 @@ public class BankProxy extends ClientProxy implements Ibank{
 		inv.setOperationName(methodName);
 		inv.setParameters(parameters);
 		
-		ter=requestor.invoke(inv);
+		ter=req.invoke(inv);
 		Float j=(Float) ter.getResult().get(0);
 		
 		return j;
 		
 	}
 
-	public void putMoney(int id, int valor) throws Throwable {
+	public void putMoney(int id, int valor,Requestor req) throws Throwable {
 		Invocation inv=new Invocation();
 		ArrayList<Object> parameters = new ArrayList<Object>();
 		class Local{};
@@ -58,12 +57,12 @@ public class BankProxy extends ClientProxy implements Ibank{
 		inv.setOperationName(methodName);
 		inv.setParameters(parameters);
 		
-		requestor.invoke(inv);
+		req.invoke(inv);
 		
 		
 	}
 
-	public boolean hasMoney(int id, int valor) throws Throwable {
+	public boolean hasMoney(int id, int valor,Requestor req) throws Throwable {
 		Invocation inv=new Invocation();
 		Termination ter= new Termination();
 		ArrayList<Object> parameters = new ArrayList<Object>();
@@ -78,11 +77,11 @@ public class BankProxy extends ClientProxy implements Ibank{
 		inv.setOperationName(methodName);
 		inv.setParameters(parameters);
 		
-		ter=requestor.invoke(inv);
+		ter=req.invoke(inv);
 		return (boolean) ter.getResult().get(0);
 	}
 
-	public void takeMoney(int id, int valor) throws Throwable, NoMoneyException {
+	public void takeMoney(int id, int valor,Requestor req) throws Throwable, NoMoneyException {
 		Invocation inv=new Invocation();
 		ArrayList<Object> parameters = new ArrayList<Object>();
 		String methodName=null;
@@ -95,11 +94,11 @@ public class BankProxy extends ClientProxy implements Ibank{
 		inv.setOperationName(methodName);
 		inv.setParameters(parameters);
 		
-		requestor.invoke(inv);
+		req.invoke(inv);
 		
 	}
 
-	public void transferMoney(int id,int id2,int valor) throws Throwable, NoMoneyException,
+	public void transferMoney(int id,int id2,int valor,Requestor req) throws Throwable, NoMoneyException,
 			IOException {
 		Invocation inv=new Invocation();
 		ArrayList<Object> parameters = new ArrayList<Object>();
@@ -114,9 +113,10 @@ public class BankProxy extends ClientProxy implements Ibank{
 		inv.setOperationName(methodName);
 		inv.setParameters(parameters);
 		
-		requestor.invoke(inv);
+		req.invoke(inv);
 		
 	}
+	
 
 	
 

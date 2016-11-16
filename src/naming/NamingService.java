@@ -14,7 +14,6 @@ import extra.Termination;
 
 public class NamingService {
 	public HashMap<String, ClientProxy> names;
-	Requestor crh =new Requestor();
 	Marshaller ms=new Marshaller();
 	public String host;
 	public int port;
@@ -28,7 +27,7 @@ public class NamingService {
 	public void Bind(String str,BankProxy bank){
 		names.put(str, bank);
 	}
-	public BankProxy lookupClient(String str) throws InterruptedException, IOException, ClassNotFoundException{
+	public BankProxy lookupClient(String str,Requestor crh) throws InterruptedException, IOException, ClassNotFoundException{
 		ArrayList<Object> ar=new ArrayList<Object>();
 		ar.add("bank");
 		Invocation inv=new Invocation();

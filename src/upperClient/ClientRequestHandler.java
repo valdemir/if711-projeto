@@ -12,6 +12,7 @@ import java.net.DatagramSocket;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.URL;
+import java.net.UnknownHostException;
 
 import extra.Invocation;
 
@@ -48,17 +49,7 @@ public class ClientRequestHandler {
 
 	public void sendTCP(byte [] msg) throws InterruptedException, IOException{
 		System.out.println(this.host+" "+this.port);
-		try{
-			clientSocket= new Socket(this.host, this.port);
-			outToServer = new DataOutputStream(clientSocket.getOutputStream());
-			inFromServer = new DataInputStream(clientSocket.getInputStream());
 			
-		}catch(Exception e){
-			
-		}
-		
-		//daqui pra frente, ele segue o modelo tcp
-		
 		sentMessageSize = msg.length;
 		outToServer.writeInt(sentMessageSize);
 		outToServer.write(msg,0,sentMessageSize);
@@ -68,9 +59,13 @@ public class ClientRequestHandler {
 	public byte [] receiveTCP() throws IOException{
 		byte[] msg = null;
 		System.out.println("reading message...");
+		clientSocket.setSoTimeout(1500);
+		receivedMessageSize = 0;
 		receivedMessageSize = inFromServer.readInt();
+		if(receivedMessageSize!=0){
 		msg=new byte [receivedMessageSize];
 		inFromServer.read(msg,0,receivedMessageSize);
+		}
 		System.out.println("message read");
 		//clientSocket.close();
 		//outToServer.close();
@@ -129,5 +124,14 @@ public class ClientRequestHandler {
 	public byte[] receive() throws IOException {
 		// TODO Auto-generated method stub
 		return receiveTCP();
+	}
+
+	public void establishTCP() throws UnknownHostException, IOException {
+		clientSocket= new Socket(this.host, this.port);
+		outToServer = new DataOutputStream(clientSocket.getOutputStream());
+		inFromServer = new DataInputStream(clientSocket.getInputStream());
+		clientSocket.setKeepAlive(true);
+		clientSocket.setTcpNoDelay(true);
+		
 	}
 }
