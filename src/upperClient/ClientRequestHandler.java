@@ -59,7 +59,6 @@ public class ClientRequestHandler {
 	public byte [] receiveTCP() throws IOException{
 		byte[] msg = null;
 		System.out.println("reading message...");
-		clientSocket.setSoTimeout(1500);
 		receivedMessageSize = 0;
 		receivedMessageSize = inFromServer.readInt();
 		if(receivedMessageSize!=0){
@@ -132,6 +131,7 @@ public class ClientRequestHandler {
 		inFromServer = new DataInputStream(clientSocket.getInputStream());
 		clientSocket.setKeepAlive(true);
 		clientSocket.setTcpNoDelay(true);
+		clientSocket.setSoTimeout(1500);
 		
 	}
 }
