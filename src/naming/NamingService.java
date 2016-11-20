@@ -4,8 +4,15 @@ import infraClient.BankProxy;
 import infraClient.ClientProxy;
 
 import java.io.IOException;
+import java.security.InvalidAlgorithmParameterException;
+import java.security.InvalidKeyException;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
+
+import javax.crypto.BadPaddingException;
+import javax.crypto.IllegalBlockSizeException;
+import javax.crypto.NoSuchPaddingException;
 
 import extra.Invocation;
 import extra.Marshaller;
@@ -27,7 +34,7 @@ public class NamingService {
 	public void Bind(String str,BankProxy bank){
 		names.put(str, bank);
 	}
-	public BankProxy lookupClient(String str,Requestor crh) throws InterruptedException, IOException, ClassNotFoundException{
+	public BankProxy lookupClient(String str,Requestor crh) throws InterruptedException, IOException, ClassNotFoundException, InvalidKeyException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException{
 		ArrayList<Object> ar=new ArrayList<Object>();
 		ar.add("bank");
 		Invocation inv=new Invocation();
