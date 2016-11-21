@@ -10,7 +10,7 @@ public class Termination {
 		this.result=result;
 	}
 	public Termination(){
-		
+		result=new ArrayList<Object>();
 	}
 
 	public ArrayList<Object> getResult() {

@@ -43,7 +43,7 @@ public class BankProxy extends ClientProxy implements Ibank{
 		
 	}
 
-	public void putMoney(int id, int valor,Requestor req) throws Throwable {
+	public void putMoney(int id, Float valor,Requestor req) throws Throwable {
 		Invocation inv=new Invocation();
 		ArrayList<Object> parameters = new ArrayList<Object>();
 		class Local{};
@@ -62,7 +62,7 @@ public class BankProxy extends ClientProxy implements Ibank{
 		
 	}
 
-	public boolean hasMoney(int id, int valor,Requestor req) throws Throwable {
+	public boolean hasMoney(int id, Float valor,Requestor req) throws Throwable {
 		Invocation inv=new Invocation();
 		Termination ter= new Termination();
 		ArrayList<Object> parameters = new ArrayList<Object>();
@@ -81,7 +81,7 @@ public class BankProxy extends ClientProxy implements Ibank{
 		return (boolean) ter.getResult().get(0);
 	}
 
-	public void takeMoney(int id, int valor,Requestor req) throws Throwable, NoMoneyException {
+	public void takeMoney(int id, Float valor,Requestor req) throws Throwable, NoMoneyException {
 		Invocation inv=new Invocation();
 		ArrayList<Object> parameters = new ArrayList<Object>();
 		String methodName=null;
@@ -98,7 +98,7 @@ public class BankProxy extends ClientProxy implements Ibank{
 		
 	}
 
-	public void transferMoney(int id,int id2,int valor,Requestor req) throws Throwable, NoMoneyException,
+	public void transferMoney(int id,int id2,Float valor,Requestor req) throws Throwable, NoMoneyException,
 			IOException {
 		Invocation inv=new Invocation();
 		ArrayList<Object> parameters = new ArrayList<Object>();

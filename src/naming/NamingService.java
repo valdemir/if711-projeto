@@ -38,7 +38,7 @@ public class NamingService {
 		ArrayList<Object> ar=new ArrayList<Object>();
 		ar.add("bank");
 		Invocation inv=new Invocation();
-		BankProxy cl=new BankProxy("192.168.0.101", 1515,1000);
+		BankProxy cl=new BankProxy("localhost", 1515,1000);
 		inv.SetClientProxy(cl);
 		inv.setOperationName("lookup");
 		inv.setParameters(ar);

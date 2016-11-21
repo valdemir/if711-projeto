@@ -19,7 +19,7 @@ import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
 import javax.crypto.spec.IvParameterSpec;
-
+import javax.crypto.spec.SecretKeySpec;
 import Decoder.BASE64Encoder;
 import upperClient.ClientRequestHandler;
 import upperServer.Message;
@@ -32,37 +32,48 @@ public class Requestor {
 	int aes_keyLength=0;
 	byte[] iv;
 	SecretKey secretKey;
-	ClientRequestHandler crh=new ClientRequestHandler("192.168.0.101",1515);
+	ClientRequestHandler crh=new ClientRequestHandler("localhost",1515);
 	public Requestor() throws UnknownHostException, IOException{
 		crh.establishTCP();
 		
 	}
 	public Termination invoke(Invocation inv)throws InterruptedException, IOException, ClassNotFoundException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException{
 		KeyGenerator keyGen = KeyGenerator.getInstance("AES");
-		keyGen.init(128);
-		
-		
+		Cipher aesCipherForEncryption;
 		if(aes_keyLength==0){
-			@SuppressWarnings("resource")
 			BufferedReader bf= new BufferedReader(new FileReader(new File("key.txt")));
-			aes_keyLength=bf.read();
+			String key=bf.readLine();
+			if(key.equals("128")){
+				aes_keyLength=128;
+			}else if(key.equals("1024")){
+				aes_keyLength=1024;
+			}else{
+				aes_keyLength=2048;
+			}
+				
 			bf.close();
+			keyGen.init(128);//has to be 128, 192 or 256
 			secretKey = keyGen.generateKey();
-			byte[] iv = new byte[aes_keyLength / 8];
 		}
-			// Save the IV bytes or send it in plaintext with the encrypted data so you can decrypt the data later
-		SecureRandom prng = new SecureRandom();
 		
-		prng.nextBytes(iv);
-		Cipher aesCipherForEncryption = Cipher.getInstance("AES/CBC/PKCS7PADDING"); // Must specify the mode explicitly as most JCE providers default to ECB mode!!
+		
+			
+			iv = new byte[128 / 8];
+		if(aes_keyLength==128){
+			// Save the IV bytes or send it in plaintext with the encrypted data so you can decrypt the data later
+			SecureRandom prng = new SecureRandom();
+			
+			prng.nextBytes(iv);
+			
+			aesCipherForEncryption = Cipher.getInstance("AES");
+		}else{
+			 aesCipherForEncryption = Cipher.getInstance("RSA");
+		}
 		BufferedWriter bw=new BufferedWriter(new FileWriter(new File("crypt.txt")));
 		String cipher=new BASE64Encoder().encode(secretKey.getEncoded());
-		String cipheriv=new BASE64Encoder().encode(iv);
 		bw.write(cipher);
-		bw.write(cipheriv);
 		bw.close();
-		aesCipherForEncryption.init(Cipher.ENCRYPT_MODE, secretKey, 
-				new IvParameterSpec(iv));
+		aesCipherForEncryption.init(Cipher.ENCRYPT_MODE, secretKey);
 
 		Marshaller ms=new Marshaller();
 		Termination tm=new Termination();
@@ -84,10 +95,9 @@ public class Requestor {
 		crh.sendTCP(byteCipherText);
 		msg2=crh.receiveTCP();
 		
-		Cipher aesCipherForDecryption = Cipher.getInstance("AES/CBC/PKCS7PADDING"); // Must specify the mode explicitly as most JCE providers default to ECB mode!!				
+		Cipher aesCipherForDecryption = Cipher.getInstance("AES"); // Must specify the mode explicitly as most JCE providers default to ECB mode!!				
 
-		aesCipherForDecryption.init(Cipher.DECRYPT_MODE, secretKey,
-				new IvParameterSpec(iv));
+		aesCipherForDecryption.init(Cipher.DECRYPT_MODE, secretKey);
 		byte[] byteDecryptedText = aesCipherForDecryption
 				.doFinal(msg2);
 		
