@@ -18,8 +18,8 @@ import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.KeyGenerator;
 import javax.crypto.NoSuchPaddingException;
 import javax.crypto.SecretKey;
-import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
+
 import Decoder.BASE64Encoder;
 import upperClient.ClientRequestHandler;
 import upperServer.Message;
@@ -29,8 +29,7 @@ import upperServer.MessageHeader;
 public class Requestor {
 	
 	Marshaller ms=new Marshaller();
-	int aes_keyLength=0;
-	byte[] iv;
+	int keyLength=0;
 	SecretKey secretKey;
 	ClientRequestHandler crh=new ClientRequestHandler("localhost",1515);
 	public Requestor() throws UnknownHostException, IOException{
@@ -39,41 +38,39 @@ public class Requestor {
 	}
 	public Termination invoke(Invocation inv)throws InterruptedException, IOException, ClassNotFoundException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IllegalBlockSizeException, BadPaddingException{
 		KeyGenerator keyGen = KeyGenerator.getInstance("AES");
-		Cipher aesCipherForEncryption;
-		if(aes_keyLength==0){
+		Cipher CipherForEncryption=null;
+		if(keyLength==0){
 			BufferedReader bf= new BufferedReader(new FileReader(new File("key.txt")));
 			String key=bf.readLine();
 			if(key.equals("128")){
-				aes_keyLength=128;
-			}else if(key.equals("1024")){
-				aes_keyLength=1024;
+				keyLength=128;
+				keyGen.init(128);//key size has to be 128, 192 or 256
+				secretKey = keyGen.generateKey();
+			}else if(key.equals("64")){
+				keyLength=64;
+				secretKey = new SecretKeySpec(
+				        new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 }, "Blowfish");
 			}else{
-				aes_keyLength=2048;
+				keyLength=256;
 			}
 				
 			bf.close();
-			keyGen.init(128);//has to be 128, 192 or 256
-			secretKey = keyGen.generateKey();
 		}
 		
 		
 			
-			iv = new byte[128 / 8];
-		if(aes_keyLength==128){
-			// Save the IV bytes or send it in plaintext with the encrypted data so you can decrypt the data later
-			SecureRandom prng = new SecureRandom();
 			
-			prng.nextBytes(iv);
+		if(keyLength==128){
 			
-			aesCipherForEncryption = Cipher.getInstance("AES");
-		}else{
-			 aesCipherForEncryption = Cipher.getInstance("RSA");
+			CipherForEncryption = Cipher.getInstance("AES");
+		}else if(keyLength==64){
+			 CipherForEncryption = Cipher.getInstance("Blowfish/ECB/NoPadding");
 		}
 		BufferedWriter bw=new BufferedWriter(new FileWriter(new File("crypt.txt")));
 		String cipher=new BASE64Encoder().encode(secretKey.getEncoded());
 		bw.write(cipher);
 		bw.close();
-		aesCipherForEncryption.init(Cipher.ENCRYPT_MODE, secretKey);
+		CipherForEncryption.init(Cipher.ENCRYPT_MODE, secretKey);
 
 		Marshaller ms=new Marshaller();
 		Termination tm=new Termination();
@@ -87,19 +84,27 @@ public class Requestor {
 		Message message= new Message(mh,mb);
 		
 		msg1=ms.marshall(message);
-		byte[] byteCipherText = aesCipherForEncryption
-				.doFinal(msg1);
-		
-		
-		
+		int k=msg1.length;
+		if(k%8!=0){
+			byte[] complement=new byte[8-(k%8)];
+			 byte[] c = new byte[msg1.length + complement.length];
+			 System.arraycopy(msg1, 0, c, 0, msg1.length);
+			 System.arraycopy(complement, 0, c, msg1.length, complement.length);
+			 msg1=c;
+		}
+		byte[] byteCipherText = CipherForEncryption.doFinal(msg1);
 		crh.sendTCP(byteCipherText);
-		msg2=crh.receiveTCP();
 		
-		Cipher aesCipherForDecryption = Cipher.getInstance("AES"); // Must specify the mode explicitly as most JCE providers default to ECB mode!!				
+		msg2=crh.receiveTCP();
+		Cipher CipherForDecryption =null;
+		if(keyLength==128){
+			CipherForDecryption=Cipher.getInstance("AES"); 
+		}else if(keyLength==64){
+			CipherForDecryption=Cipher.getInstance("Blowfish/ECB/NoPadding");
+		}
 
-		aesCipherForDecryption.init(Cipher.DECRYPT_MODE, secretKey);
-		byte[] byteDecryptedText = aesCipherForDecryption
-				.doFinal(msg2);
+		CipherForDecryption.init(Cipher.DECRYPT_MODE, secretKey);
+		byte[] byteDecryptedText = CipherForDecryption.doFinal(msg2);
 		
 		
 		msgFinal=(Message) ms.unmarshall(byteDecryptedText);

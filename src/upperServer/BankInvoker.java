@@ -37,19 +37,32 @@ public class BankInvoker {
 	 SecretKey secretKey=null;
 	 byte [] iv=null;
 	 nm.Bind("bank", cp);
+	 String mode="AES";
 	 while(true){
 		 byte [] msg=srh.receiveTCP();
-		 Cipher aesCipherForDecryption = Cipher.getInstance("AES");
+		 
+		 
 		 if(msg!=null){
 			 if(secretKey==null){
 				 BufferedReader br=new BufferedReader(new FileReader(new File("crypt.txt")));
 				 byte [] key = Base64.getDecoder().decode(br.readLine());
-				 secretKey = new SecretKeySpec(key, 0, key.length, "AES"); 
+				 System.out.println("Key length: "+key.length);
+				 if(key.length==16){
+					 mode="AES";
+					 secretKey = new SecretKeySpec(key, 0, key.length, "AES");
+				 }else if(key.length==8){
+					 mode="Blowfish/ECB/NoPadding";
+					 secretKey= new SecretKeySpec(
+						        new byte[] { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07 }, "Blowfish");
+				 }else{
+					 
+				 }
 				 br.close();
 				  
 			 }
-			 aesCipherForDecryption.init(Cipher.DECRYPT_MODE, secretKey);
-				byte[] byteDecryptedText = aesCipherForDecryption
+			 Cipher CipherForDecryption = Cipher.getInstance(mode);
+			 CipherForDecryption.init(Cipher.DECRYPT_MODE, secretKey);
+				byte[] byteDecryptedText = CipherForDecryption
 						.doFinal(msg);
 			 
 			 msgFinal=(Message) ms.unmarshall(byteDecryptedText);
@@ -63,7 +76,7 @@ public class BankInvoker {
 				 answer=new Message(new MessageHeader("TCP", 0, false, 0, 0),new MessageBody(null,null,
 						 new ReplyHeader("",0,0),new ReplyBody(null)));
 				 System.out.println("take money");
-				 srh.sendTCP(encrypt(secretKey,iv,answer));
+				 srh.sendTCP(encrypt(secretKey,iv,answer,mode));
 				 break;
 			 case "putMoney":
 				 p1=(int) msgFinal.getBody().getRequestBody().getParameters().get(0);
@@ -71,7 +84,7 @@ public class BankInvoker {
 				 bk.putMoney(p1, param_p2);
 				 answer=new Message(new MessageHeader("TCP", 0, false, 0, 0),new MessageBody(null,null,
 						 new ReplyHeader("",0,0),new ReplyBody(null)));
-				 srh.sendTCP(encrypt(secretKey,iv,answer));
+				 srh.sendTCP(encrypt(secretKey,iv,answer,mode));
 				 break;
 			 case "hasMoney":
 				 p1=(int) msgFinal.getBody().getRequestBody().getParameters().get(0);
@@ -79,7 +92,7 @@ public class BankInvoker {
 				 ter.setResult(bk.hasMoney(p1, param_p2));
 				 answer=new Message(new MessageHeader("TCP", 0, false, 0, 0),new MessageBody(null,null,
 						 new ReplyHeader("",0,0),new ReplyBody(ter.getResult())));
-				 srh.sendTCP(encrypt(secretKey,iv,answer));
+				 srh.sendTCP(encrypt(secretKey,iv,answer,mode));
 				 break;
 			 case "transfer":
 				 p1=(int) msgFinal.getBody().getRequestBody().getParameters().get(0);
@@ -88,7 +101,7 @@ public class BankInvoker {
 				 bk.transferMoney(p1, p2,param_p3);
 				 answer=new Message(new MessageHeader("TCP", 0, false, 0, 0),new MessageBody(null,null,
 						 new ReplyHeader("",0,0),new ReplyBody(null)));
-				 srh.sendTCP(encrypt(secretKey,iv,answer));
+				 srh.sendTCP(encrypt(secretKey,iv,answer,mode));
 				 break;
 			 case "lookup":
 				 ClientProxy cl=(nm.lookup((String) msgFinal.getBody().getRequestBody().getParameters().get(0)));
@@ -97,7 +110,7 @@ public class BankInvoker {
 				 al.add(cl.getPort());
 				 answer=new Message(new MessageHeader("TCP", 0, false, 0, 0),new MessageBody(null,null,
 						 new ReplyHeader("",0,0),new ReplyBody(al)));
-				 srh.sendTCP(encrypt(secretKey,iv,answer));
+				 srh.sendTCP(encrypt(secretKey,iv,answer,mode));
 				 break;
 			 case "getSaldo":
 				 p1=(int) msgFinal.getBody().getRequestBody().getParameters().get(0);
@@ -109,17 +122,25 @@ public class BankInvoker {
 				 }
 				 answer=new Message(new MessageHeader("TCP", 0, false, 0, 0),new MessageBody(null,null,
 						 new ReplyHeader("",0,0),new ReplyBody(ter.getResult())));
-				 srh.sendTCP(encrypt(secretKey,iv,answer));
+				 srh.sendTCP(encrypt(secretKey,iv,answer,mode));
 				 break;
 			 }
 		 }
 	 }
  }
- public byte[] encrypt(SecretKey sk,byte[] iv,Message msg) throws IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IOException, InterruptedException{
+ public byte[] encrypt(SecretKey sk,byte[] iv,Message msg,String mode) throws IllegalBlockSizeException, BadPaddingException, NoSuchAlgorithmException, NoSuchPaddingException, InvalidKeyException, InvalidAlgorithmParameterException, IOException, InterruptedException{
 	 Marshaller ms=new Marshaller();
-	 Cipher aesCipherForEncryption = Cipher.getInstance("AES");
+	 Cipher aesCipherForEncryption = Cipher.getInstance(mode);
 	 aesCipherForEncryption.init(Cipher.ENCRYPT_MODE, sk);
 	 byte[] send=ms.marshall(msg);
+	 int k=send.length;
+	 if(k%8!=0){
+		 byte[] complement=new byte[8-(k%8)];
+		 byte[] c = new byte[send.length + complement.length];
+		 System.arraycopy(send, 0, c, 0, send.length);
+		 System.arraycopy(complement, 0, c, send.length, complement.length);
+		 send=c;
+	 }
 	 byte[] byteCipherText = aesCipherForEncryption
 				.doFinal(send);
 	 return byteCipherText;
